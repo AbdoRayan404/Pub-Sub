@@ -1,0 +1,14 @@
+[
+    {
+        "name": "main",
+        "max-pubs": "1"
+    },
+    {
+        "name": "podcast",
+        "max-pubs": "2"
+    },
+    {
+        "name": "locked",
+        "max-pubs": "0"
+    }
+]

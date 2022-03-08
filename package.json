@@ -1,0 +1,16 @@
+{
+  "name": "pub-sub",
+  "version": "0.1.0",
+  "description": "2022/3/8 3:57AM YYMMDD, implementing Pub-Sub after studying it to test out what i understood",
+  "main": "index.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "keywords": [],
+  "author": "Terry-404",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "ws": "^8.5.0"
+  }
+}
