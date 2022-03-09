@@ -1,14 +1,20 @@
 [
     {
         "name": "main",
-        "max-pubs": "1"
+        "max-pubs": 1,
+        "max-subs": -1,
+        "sub-passwd": ""
     },
     {
         "name": "podcast",
-        "max-pubs": "2"
+        "max-pubs": 2,
+        "max-subs": 5,
+        "sub-passwd": "1234"
     },
     {
         "name": "locked",
-        "max-pubs": "0"
+        "max-pubs": 0,
+        "max-subs": 0,
+        "sub-passwd": "928173982173"
     }
 ]

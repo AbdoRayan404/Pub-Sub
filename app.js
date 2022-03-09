@@ -8,8 +8,11 @@ const pubPassword = process.env.PUB_PASSWD
 let subscriptions = [];
 let topics = {"default": {
         "pubs": 0,
+        "subs": 0,
         "max-pubs": 1,
-        "subs": []
+        "max-subs": "",
+        "sub-passwd": "",
+        "subscriptions": []
         }
 };
 
@@ -17,7 +20,19 @@ let topics = {"default": {
 try{
     let data = fs.readFileSync('./topics.json', {encoding:'utf8', flag:"r"})
     data = JSON.parse(data);
-    data.forEach(d => topics[d["name"]] = {"pubs":0, "max-pubs":d["max-pubs"], "subs":[]})
+    data.forEach(d => {
+        if(d["max-pubs"] == 0 && d["max-subs"] == 0){
+            console.log(`Topic ${d["name"]} appear to be locked with maximum pubs & subs of 0.`)
+        }
+        topics[d["name"]] = {
+            "pubs":0,
+            "subs":0,
+            "max-pubs":d["max-pubs"],
+            "max-subs":d["max-subs"],
+            "sub-passwd":d["sub-passwd"],
+            "subscriptions":[]
+        }
+    })
 }
 catch(e){
     console.log("Retriving topic.json wasn't successful")
@@ -65,7 +80,7 @@ pub.on('connection', (socket, req)=>{
     }
     
     socket.on('message', (msg) =>{
-        topics[req.headers["topic"]]["subs"].forEach(s => s.send(`[${req.headers["name"]}] ${msg}`))
+        topics[req.headers["topic"]]["subscriptions"].forEach(s => s.send(`[${req.headers["name"]}] ${msg}`))
     })
     //close
     socket.on('close', () =>{
@@ -78,16 +93,36 @@ pub.on('connection', (socket, req)=>{
 
 sub.on('connection', (socket, req) =>{
     socket.send("Connecting to Topic....");
-    if(req.headers["topic"] && topics.hasOwnProperty(req.headers["topic"])){
-        topics[req.headers["topic"]]["subs"].push(socket);
+    if(topics.hasOwnProperty(req.headers["topic"])){
+        if(topics[req.headers["topic"]]["sub-passwd"] != ""){
+            if(req.headers["sub-passwd"] != topics[req.headers["topic"]]["sub-passwd"]){
+                socket.send("Wrong sub password")
+                socket.terminate()
+                return;
+            }
+            if(topics[req.headers["topic"]]["subs"] >= topics[req.headers["topic"]]["max-subs"] && topics[req.headers["topic"]["max-subs"]] != -1){
+                socket.send("This topic appears to be full.");
+                socket.terminate()
+                return;
+            }
+        }
+
+        topics[req.headers["topic"]]["subscriptions"].push(socket);
+        topics[req.headers["topic"]]["subs"]++;
+        console.log(topics[req.headers['topic']])
         subscriptions.push(socket);
         
         socket.send(`Connected Successfuly to topic ${req.headers["topic"]}`)
         console.log(`Successful sub connection, to topic ${req.headers["topic"]}`)
     }else{
         socket.send("Topic doesn't exist. Disconnecting....");
+        socket.terminate()
         console.log(`Unsuccessful sub connection, to topic ${req.headers["topic"]}`)
     }
+
+    socket.on('close', ()=>{
+        topics[req.headers["topic"]]["subs"]--;
+    })
 })
 
 
