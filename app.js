@@ -48,9 +48,10 @@ pub.on('connection', (socket, req)=>{
 
     socket.send("Connecting to topic...");
     if(req.headers["name"] && topics.hasOwnProperty(req.headers["topic"])){
-        if(topics[req.headers["topic"]]["pubs"] != 0){
-            socket.send("This topic already have publisher.");
-            return;
+        if(topics[req.headers["topic"]]["pubs"] >= topics[req.headers["topic"]]["max-pubs"]){
+            socket.send("This topic reached it's maximum publishers.");
+            socket.terminate();
+            return
         }
 
         publishersInfo[req.headers["name"]] = {"topic": req.headers["topic"]};
@@ -68,8 +69,10 @@ pub.on('connection', (socket, req)=>{
     })
     //close
     socket.on('close', () =>{
-        pubMessages = 0;
-        publishers--;
+        if(topics.hasOwnProperty(req.headers["topic"]) && req.headers["pub-password"] == pubPassword){
+            topics[req.headers["topic"]]["pubs"]--;
+            console.log("publisher has been disconnected.")
+        }
     })
 })
 
